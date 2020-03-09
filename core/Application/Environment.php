@@ -63,6 +63,8 @@ class Environment
     /**
      * @var GlobalSettingsProvider
      */
+    // S: By default, admin settings contain all plugins needed.
+    //
     private $globalSettingsProvider;
 
     /**

@@ -44,6 +44,9 @@ class EnvironmentValidator
     {
         $this->checkConfigFileExists($this->settingsProvider->getPathGlobal());
 
+        //S : Here the function check if it's config.ini.php is 
+        // existing. Validate if it's installed by checking
+        // if the file is not installed
         if(SettingsPiwik::isPiwikInstalled()) {
             $this->checkConfigFileExists($this->settingsProvider->getPathLocal(), $startInstaller = false);
             return;
@@ -90,6 +93,7 @@ class EnvironmentValidator
         $exception = new NotYetInstalledException($message);
 
         if ($startInstaller) {
+            //S: Will start the installation here.
             $this->startInstallation($exception);
         } else {
             throw $exception;

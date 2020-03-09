@@ -74,3 +74,6 @@ php_errors.log
 /.vagrant
 /plugins/.gitignore
 /js/container*.js
+
+#PERSO
+.*.sw[pno]

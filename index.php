@@ -7,6 +7,7 @@
  *
  * @package Piwik
  */
+header('Content-Type: text/plain');
 
 if (!defined('PIWIK_DOCUMENT_ROOT')) {
     define('PIWIK_DOCUMENT_ROOT', dirname(__FILE__) == '/' ? '' : dirname(__FILE__));

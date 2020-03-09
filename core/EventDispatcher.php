@@ -87,6 +87,9 @@ class EventDispatcher
      */
     public function postEvent($eventName, $params, $pending = false, $plugins = null)
     {
+        // S: Get $event=Config.NoConfigurationFile to be rendered
+        // Get Piwik\Exception\NotYetInstalledException
+        // with message "config.ini.php has not been found or could not be read."
         if ($pending) {
             $this->pendingEvents[] = array($eventName, $params);
         }
