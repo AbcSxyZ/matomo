@@ -13,6 +13,7 @@ use Piwik\Plugins\UsersManager\API as APIUsersManager;
 use Piwik\Plugins\UsersManager\NewsletterSignup;
 use Piwik\Plugins\UsersManager\UserUpdater;
 use Piwik\ProxyHeaders;
+use Piwik\Tracker\TrackerCodeGenerator;
 use Piwik\Updater;
 use Piwik\Url;
 use Piwik\Version;
@@ -153,6 +154,23 @@ class InstallManager{
         );
         self::addTrustedHosts($settings['url']);
         return $params;
+    }
+
+    public static function trackingCode($idSite=null)
+    {
+        if (is_null($siteId))
+            $idSite = InstallManager::getParam('idSite');
+
+        $javascriptGenerator = new TrackerCodeGenerator();
+        $jsTag = $javascriptGenerator->generate($idSite, Url::getCurrentUrlWithoutFileName());
+        $rawJsTag = TrackerCodeGenerator::stripTags($jsTag);
+        return $rawJsTag;
+        
+    }
+
+    protected static function getParam($name)
+    {
+        return Common::getRequestVar($name, false, 'string');
     }
 
     public static function createSuperUser($login, $password, $email)

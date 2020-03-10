@@ -410,6 +410,9 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $siteName = Common::unsanitizeInputValue($this->getParam('site_name'));
         $idSite = $this->getParam('site_idSite');
 
+        //S: Able to retrieve JS snippet
+        $rawJsTag = InstallManager::trackingCode($idSite);
+
         $javascriptGenerator = new TrackerCodeGenerator();
         $jsTag = $javascriptGenerator->generate($idSite, Url::getCurrentUrlWithoutFileName());
         $rawJsTag = TrackerCodeGenerator::stripTags($jsTag);
