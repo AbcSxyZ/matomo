@@ -235,7 +235,7 @@ class InstallManager{
      */
     public static function trackingCode($idSite=null)
     {
-        if (is_null($siteId))
+        if (is_null($idSite))
             $idSite = InstallManager::getParam('idSite');
 
         $javascriptGenerator = new TrackerCodeGenerator();
