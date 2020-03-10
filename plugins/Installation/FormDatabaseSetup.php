@@ -110,9 +110,9 @@ class FormDatabaseSetup extends QuickForm2
     public function formatDatabaseSettings()
     {
         $settings = array(
-            'host'      => $this->getSubmitValue('host'),
-            'username'  => $this->getSubmitValue('username'),
-            'password'  => $this->getSubmitValue('password'),
+            'dbhost'      => $this->getSubmitValue('host'),
+            'dbusername'  => $this->getSubmitValue('username'),
+            'dbpassword'  => $this->getSubmitValue('password'),
             'dbname'    => $this->getSubmitValue('dbname'),
             'adapter'   => $this->getSubmitValue('adapter'),
             'tables_prefix'     => $this->getSubmitValue('tables_prefix'),

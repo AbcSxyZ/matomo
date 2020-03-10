@@ -37,6 +37,14 @@ use Piwik\Url;
 use Piwik\Version;
 use Zend_Db_Adapter_Exception;
 
+function LOG_ERROR($message)
+{
+    $filename = getcwd() . '/' . 'tmp/logs/debug.log';
+    $fd = fopen($filename, 'a');
+    fwrite($fd, $message . PHP_EOL);
+    fclose($fd);
+}
+
 /**
  * Installation controller
  *
@@ -84,6 +92,30 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
      */
     function welcome($possibleErrorMessage = null)
     {
+        //HEADLESS INSTALL: Create general settings to bypass
+        // gui install
+        $settings = array(
+            "dbname" => "matomo",
+            "dbusername" => "user",
+            "dbpassword" => "pass-w0rd",
+            "dbhost" => "127.0.0.1",
+            "tables_prefix" => "matomo_",
+            "adapter" => "PDO\\MYSQL",
+            "type" => "InnoDB",
+            "adminusername" => "admin",
+            "adminpassword" => "pass-w0rd",
+            "email" => "mail@example.com",
+            "subscribe_newsletter_piwikorg" => null,
+            "subscribe_newsletter_professionalservices" => null,
+            "name" => "test",
+            "url" => "test.org",
+            "ecommerce" => 0
+        );
+        //HEADLESS INSTALL: skip all step and get redirected to
+        //the default index.php.
+        InstallManager::headlessInstall($settings);
+        Url::redirectToUrl('index.php');
+
         // Delete merged js/css files to force regenerations based on updated activated plugin list
         Filesystem::deleteAllCacheOnUpdate();
 
@@ -105,6 +137,9 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     {
         $this->checkPiwikIsNotInstalled();
 
+        //S: Check how deletion have to be done.
+        // WIll be duplicate with the InstallManager but will miss
+        // $this->resetLanguageCookie()
         $this->deleteConfigFileIfNeeded();
 
         $view = new View(

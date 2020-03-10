@@ -19,14 +19,63 @@ use Piwik\Url;
 use Piwik\Version;
 
 class InstallManager{
+
+    /*
+     * Perform the entire installation of Matomo.
+     * Use user-defined settings.
+     *
+     * //NEED TO DEFINE OPTIONNAL SETTINGS
+     * @settings is expected to be an array with following
+     * variables.
+     *
+     *  - dbname
+     *  - port (to add ? Found by default)
+     *  - dbusername
+     *  - dbpassword
+     *  - dbhost
+     *  - tables_prefix
+     *  - adapter : PDO\MYSQL | MYSQLI
+     *  //TYPE: db engine, from GUI, having null as default, but
+     *  //must add InnoDB to run InstallManager::tablesCreation()
+     *  - type
+     *  - adminusername
+     *  - adminpassword
+     *  - email
+     *  // FOR subscribe, get null or 1 by GUI, convert to true or false ?
+     *  - subscribe_newsletter_piwikorg
+     *  - subscribe_newsletter_professionalservices
+     *  - name
+     *  - url
+     *  - ecommerce : 0 or 1
+    */
+    public static function headlessInstall($settings)
+    {
+        if (InstallManager::systemCheck())
+        {
+            //Raise Error because DigntosicService report in invalid.
+            //What should I do in case of warning or error ?
+        }
+        InstallManager::createDatabaseObject($settings);
+        InstallManager::tablesCreation();
+        InstallManager:: setupSuperUser($settings);
+        InstallManager::firstWebsiteSetup($settings);
+        $js = InstallManager::trackingCode();
+        //There is an ini variable who said install in progress (?)
+        InstallManager::markInstallationAsCompleted();
+        return $js;
+    }
+
     /**
+     * Installation Step 2: System Check
+     *
      * Control if the system is ready for installation,
      * run Plugins\Diagnostics to get state.
      * 
-     * @view View
+     * @view View (optionnal), view to store DiagnosticReport
     */
-    public static function systemCheck($view)
+    public static function systemCheck($view=null)
     {
+        self::deleteConfigFileIfNeeded();
         // Do not use dependency injection because this service requires a lot of sub-services across plugins
         /** @var DiagnosticService $diagnosticService */
         $diagnosticService = StaticContainer::get('Piwik\Plugins\Diagnostics\DiagnosticService');
@@ -45,6 +94,10 @@ class InstallManager{
         return (!$diagnosticReport->hasErrors());
     }
 
+    /**
+     * Installation Step 3: Database Set-up
+     * @throws Exception|Zend_Db_Adapter_Exception
+     */
     public static function createDatabaseObject($settings)
     {
         //S : Trim is usefull ?? Why the entry shouldn't be trimmed ?
@@ -54,15 +107,16 @@ class InstallManager{
             throw new Exception("No database name");
         }
 
+        //Should I allow port change ? Using defaultPort if null.
         $adapter = $settings['adapter'];
         $port = Adapter::getDefaultPortForAdapter($adapter);
-        $host = $settings['host'];
+        $host = $settings['dbhost'];
         $tables_prefix = $settings['tables_prefix'];
 
         $dbInfos = array(
             'host'          => (is_null($host)) ? $host : trim($host),
-            'username'      => $settings['username'],
-            'password'      => $settings['password'],
+            'username'      => $settings['dbusername'],
+            'password'      => $settings['dbpassword'],
             'dbname'        => $dbname,
             'tables_prefix' => (is_null($tables_prefix)) ? $tables_prefix : trim($tables_prefix),
             'adapter'       => $adapter,
@@ -107,8 +161,13 @@ class InstallManager{
         return $dbInfos;
     }
     
+    /**
+     * Installation Step 4: Table Creation
+     */
     public static function tablesCreation()
     {
+        //ERROR HERE, getting null engine and creating SQL syntax error :
+        // "the right syntax to use near &#039;DEFAULT CHARSET=utf8&#03"
         DbHelper::createTables();
         DbHelper::createAnonymousUser();
         DbHelper::recordInstallVersion();
@@ -118,32 +177,46 @@ class InstallManager{
         Updater::recordComponentSuccessfullyUpdated('core', Version::VERSION);
     }
 
+    /**
+     * Installation Step 5: General Set-up (superuser login/password/email and subscriptions)
+     */
     public static function setupSuperUser($settings)
     {
         // Can throw exception
 
         //WHICH WORK IF USER EXISTS ?
+        $superUserAlreadyExists = Access::doAsSuperUser(function () {
+            return count(APIUsersManager::getInstance()->getUsersHavingSuperUserAccess()) > 0;
+        });
+
+        if ($superUserAlreadyExists) {
+            $this->redirectToNextStep('setupSuperUser');
+        }
 
         //Create user
-        self::createSuperUser($settings['login'],
-                              $settings['password'],
+        self::createSuperUser($settings['adminusername'],
+                              $settings['adminpassword'],
                               $settings['email']);
 
 
         //Subscribe matomo newsletters
         NewsletterSignup::signupForNewsletter(
-            $settings['login'],
+            $settings['adminusername'],
             $settings['email'],
             $settings['subscribe_newsletter_piwikorg'],
             $settings['subscribe_newsletter_professionalservices']
         );
     }
 
+    /**
+     * Installation Step 6: Configure first web-site
+     */
     public static function firstWebsiteSetup($settings)
     {
         $name = $settings['name'];
         $url = $settings['url'];
         $ecommerce = $settings['ecommerce'];
+
         $result = Access::doAsSuperUser(function () use ($name, $url, $ecommerce) {
             return APISitesManager::getInstance()->addSite($name, $url, $ecommerce);
         });
@@ -156,6 +229,10 @@ class InstallManager{
         return $params;
     }
 
+    /**
+     * Installation Step 7: Create JavaScript tracking code
+     * // S: What should I do with generated code for the headless install
+     */
     public static function trackingCode($idSite=null)
     {
         if (is_null($siteId))
@@ -166,6 +243,14 @@ class InstallManager{
         $rawJsTag = TrackerCodeGenerator::stripTags($jsTag);
         return $rawJsTag;
         
+    }
+
+    protected static function deleteConfigFileIfNeeded()
+    {
+        $config = Config::getInstance();
+        if ($config->existsLocalConfig()) {
+            $config->deleteLocalConfig();
+        }
     }
 
     protected static function getParam($name)
@@ -188,6 +273,8 @@ class InstallManager{
      * Write configuration file from session-store
      */
 
+    //S:At which point is it usefull, which settings is
+    //for the GUI (like installation_in_progress)
     public static function createConfigFile($dbInfos)
     {
         $config = Config::getInstance();
@@ -222,6 +309,9 @@ class InstallManager{
         $config->forceSave();
     }
 
+    /**
+     * @return array|bool
+     */
     protected static function updateComponents()
     {
         Access::getInstance();
@@ -237,6 +327,10 @@ class InstallManager{
             return $result;
         });
     }
+
+    /*
+     * Add trusted host to general settings.
+    */
     protected static function addTrustedHosts($siteUrl)
     {
         $trustedHosts = array();
@@ -275,8 +369,19 @@ class InstallManager{
         if (isset($urlParts['host']) && strlen($host = $urlParts['host'])) {
             return $host;
         }
-
         return false;
+    }
+
+    /**
+     * Write configuration file from session-store
+     */
+    //S:Probably function is not needed, but having trouble with
+    //installation_in_progress settings.
+    protected static function markInstallationAsCompleted()
+    {
+        $config = Config::getInstance();
+        unset($config->General['installation_in_progress']);
+        $config->forceSave();
     }
 
 }
