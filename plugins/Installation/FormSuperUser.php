@@ -79,6 +79,25 @@ class FormSuperUser extends QuickForm2
             'subscribe_newsletter_professionalservices' => 0,
         )));
     }
+
+    /* SIMON:
+     * Create an array with new super user settings
+     * from the form.
+     */
+
+    public function formatSuperUserSettings()
+    {
+        $newsletterPiwikORG = $this->getSubmitValue('subscribe_newsletter_piwikorg');
+        $newsletterProfessionalServices = $this->getSubmitValue('subscribe_newsletter_professionalservices');
+        $settings = array(
+            'login'     => $this->getSubmitValue('login'),
+            'password'  => $this->getSubmitValue('password'),
+            'email'     => $this->getSubmitValue('email'),
+            'subscribe_newsletter_piwikorg' => $newsletterPiwikORG,
+            'subscribe_newsletter_professionalservices' => $newsletterProfessionalServices
+        ); 
+        return $settings;
+    }
 }
 
 /**

@@ -103,6 +103,24 @@ class FormDatabaseSetup extends QuickForm2
     }
 
     /**
+     * SIMON FUNCTION:
+     *
+     * Retrieve Form data to create an array for the db settings.
+    */
+    public function formatDatabaseSettings()
+    {
+        $settings = array(
+            'host'      => $this->getSubmitValue('host'),
+            'username'  => $this->getSubmitValue('username'),
+            'password'  => $this->getSubmitValue('password'),
+            'dbname'    => $this->getSubmitValue('dbname'),
+            'adapter'   => $this->getSubmitValue('adapter'),
+            'tables_prefix'     => $this->getSubmitValue('tables_prefix'),
+            'type'      => $this->getSubmitValue('type'),
+        );
+        return $settings;
+    }
+    /**
      * Creates database object based on form data.
      *
      * @throws Exception|Zend_Db_Adapter_Exception

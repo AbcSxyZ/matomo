@@ -113,15 +113,19 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             __FUNCTION__
         );
 
+        InstallManager::systemCheck($view);
+
+        // SIMON COMMENT
+        //
         // Do not use dependency injection because this service requires a lot of sub-services across plugins
         /** @var DiagnosticService $diagnosticService */
-        $diagnosticService = StaticContainer::get('Piwik\Plugins\Diagnostics\DiagnosticService');
-        $view->diagnosticReport = $diagnosticService->runDiagnostics();
+        /* $diagnosticService = StaticContainer::get('Piwik\Plugins\Diagnostics\DiagnosticService'); */
+        /* $view->diagnosticReport = $diagnosticService->runDiagnostics(); */
 
-        $view->showNextStep = !$view->diagnosticReport->hasErrors();
+        /* $view->showNextStep = !$view->diagnosticReport->hasErrors(); */
 
         // On the system check page, if all is green, display Next link at the top
-        $view->showNextStepAtTop = $view->showNextStep && !$view->diagnosticReport->hasWarnings();
+        /* $view->showNextStepAtTop = $view->showNextStep && !$view->diagnosticReport->hasWarnings(); */
 
         return $view->render();
     }
@@ -146,13 +150,22 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         if ($form->validate()) {
             try {
-                $dbInfos = $form->createDatabaseObject();
+                $settings = $form->formatDatabaseSettings();
+                $dbInfos = InstallManager::createDatabaseObject($settings);
+                // SIMON COMMENT
+                //
+                /* $dbInfos = $form->createDatabaseObject(); */
 
-                DbHelper::checkDatabaseVersion();
+                /* DbHelper::checkDatabaseVersion(); */
 
-                Db::get()->checkClientVersion();
+                /* Db::get()->checkClientVersion(); */
 
-                $this->createConfigFile($dbInfos);
+                /* $this->createConfigFile($dbInfos); */
+                // re-save the currently viewed language (since we saved the config file, there is now a salt which makes the
+                // existing session cookie invalid)
+
+                //S: Should I care about resetting cookies ??
+                $this->resetLanguageCookie();
 
                 $this->redirectToNextStep(__FUNCTION__);
             } catch (Exception $e) {
@@ -177,6 +190,7 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             __FUNCTION__
         );
 
+        // S: Should I care about table deletion ? Leave it to the web interface.
         if ($this->getParam('deleteTables')) {
             Manager::getInstance()->clearPluginsInstalledConfig();
             Db::dropAllTables();
@@ -186,6 +200,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $tablesInstalled = DbHelper::getTablesInstalled();
         $view->tablesInstalled = '';
 
+        // S: Same case, should I do something if some tables are
+        // created ? Not implemented.
         if (count($tablesInstalled) > 0) {
 
             // we have existing tables
@@ -204,13 +220,16 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             });
         } else {
 
-            DbHelper::createTables();
-            DbHelper::createAnonymousUser();
-            DbHelper::recordInstallVersion();
+            InstallManager::tablesCreation();
+            // SIMON COMMENT
+            //
+            /* DbHelper::createTables(); */
+            /* DbHelper::createAnonymousUser(); */
+            /* DbHelper::recordInstallVersion(); */
 
-            $this->updateComponents();
+            /* $this->updateComponents(); */
 
-            Updater::recordComponentSuccessfullyUpdated('core', Version::VERSION);
+            /* Updater::recordComponentSuccessfullyUpdated('core', Version::VERSION); */
 
             $view->tablesCreated = true;
             $view->showNextStep = true;
@@ -276,21 +295,25 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         if ($form->validate()) {
 
             try {
-                $loginName = $form->getSubmitValue('login');
-                $email = $form->getSubmitValue('email');
+                $settings = $form->formatSuperUserSettings();
+                InstallManager::setupSuperUser($settings);
+                //SIMON COMMENT
+                //
+                /* $loginName = $form->getSubmitValue('login'); */
+                /* $email = $form->getSubmitValue('email'); */
 
-                $this->createSuperUser($loginName,
-                                       $form->getSubmitValue('password'),
-                                       $email);
+                /* $this->createSuperUser($loginName, */
+                /*                        $form->getSubmitValue('password'), */
+                /*                        $email); */
 
-                $newsletterPiwikORG = $form->getSubmitValue('subscribe_newsletter_piwikorg');
-                $newsletterProfessionalServices = $form->getSubmitValue('subscribe_newsletter_professionalservices');
-                NewsletterSignup::signupForNewsletter(
-                    $loginName,
-                    $email,
-                    $newsletterPiwikORG,
-                    $newsletterProfessionalServices
-                );
+                /* $newsletterPiwikORG = $form->getSubmitValue('subscribe_newsletter_piwikorg'); */
+                /* $newsletterProfessionalServices = $form->getSubmitValue('subscribe_newsletter_professionalservices'); */
+                /* NewsletterSignup::signupForNewsletter( */
+                /*     $loginName, */
+                /*     $email, */
+                /*     $newsletterPiwikORG, */
+                /*     $newsletterProfessionalServices */
+                /* ); */
                 $this->redirectToNextStep(__FUNCTION__);
 
             } catch (Exception $e) {
@@ -330,31 +353,42 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $form = new FormFirstWebsiteSetup();
 
         if ($form->validate()) {
-            $name = Common::sanitizeInputValue($form->getSubmitValue('siteName'));
-            $url = Common::unsanitizeInputValue($form->getSubmitValue('url'));
-            $ecommerce = (int)$form->getSubmitValue('ecommerce');
+
+            //SIMON COMMENT
+            //
+            /* $name = Common::sanitizeInputValue($form->getSubmitValue('siteName')); */
+            /* $url = Common::unsanitizeInputValue($form->getSubmitValue('url')); */
+            /* $ecommerce = (int)$form->getSubmitValue('ecommerce'); */
+            $settings = $form->formatFirstWebsiteSettings();
 
             try {
-                $result = Access::doAsSuperUser(function () use ($name, $url, $ecommerce) {
-                    return APISitesManager::getInstance()->addSite($name, $url, $ecommerce);
-                });
+                $params = InstallManager::firstWebsiteSetup($settings);
 
-                $params = array(
-                    'site_idSite' => $result,
-                    'site_name' => urlencode($name)
-                );
-                $this->addTrustedHosts($url);
+                //SIMON COMMENT
+                //
+                /* $result = Access::doAsSuperUser(function () use ($name, $url, $ecommerce) { */
+                /*     return APISitesManager::getInstance()->addSite($name, $url, $ecommerce); */
+                /* }); */
+
+                /* $params = array( */
+                /*     'site_idSite' => $result, */
+                /*     'site_name' => urlencode($name) */
+                /* ); */
+                /* $this->addTrustedHosts($url); */
 
                 $this->redirectToNextStep(__FUNCTION__, $params);
             } catch (Exception $e) {
                 $view->errorMessage = $e->getMessage();
             }
+
         }
 
         // Display previous step success message, when current step form was not submitted yet
+        //S: What is the purpose ?
         if (count($form->getErrorMessages()) == 0) {
             $view->displayGeneralSetupSuccess = true;
         }
+
 
         $view->addForm($form);
         return $view->render();

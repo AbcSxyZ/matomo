@@ -28,6 +28,8 @@ class Installation extends \Piwik\Plugin
     /**
      * @see Piwik\Plugin::registerEvents
      */
+    // S : PLUGIN for installation, receiving post request.
+    // Execute NoConfigurationFile who redirect to dispatch function of the class.
     public function registerEvents()
     {
         $hooks = array(

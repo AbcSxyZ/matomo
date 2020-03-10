@@ -7,7 +7,11 @@
  *
  * @package Piwik
  */
-header('Content-Type: text/plain');
+/* header('Content-Type: text/plain'); */
+$GLOBALS['PIWIK_TRACKER_DEBUG'] = true;
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 if (!defined('PIWIK_DOCUMENT_ROOT')) {
     define('PIWIK_DOCUMENT_ROOT', dirname(__FILE__) == '/' ? '' : dirname(__FILE__));

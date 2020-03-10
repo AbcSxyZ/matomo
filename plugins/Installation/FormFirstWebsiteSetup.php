@@ -15,6 +15,7 @@ use HTML_QuickForm2_Factory;
 use HTML_QuickForm2_Rule;
 use NumberFormatter;
 use Piwik\Access;
+use Piwik\Common;
 use Piwik\Option;
 use Piwik\Piwik;
 use Piwik\Plugins\SitesManager\API;
@@ -79,6 +80,18 @@ class FormFirstWebsiteSetup extends QuickForm2
                                                                        'url' => $urlExample,
                                                                        'timezone' => $timezone,
                                                                   )));
+    }
+    function formatFirstWebsiteSettings()
+    {
+        $name = Common::sanitizeInputValue($this->getSubmitValue('siteName'));
+        $url = Common::unsanitizeInputValue($this->getSubmitValue('url'));
+        $ecommerce = (int)$this->getSubmitValue('ecommerce');
+
+        return array(
+            "name"      => $name,
+            "url"       => $url,
+            "ecommerce" => $ecommerce
+        );
     }
 }
 
