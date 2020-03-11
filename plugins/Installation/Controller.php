@@ -37,7 +37,7 @@ use Piwik\Url;
 use Piwik\Version;
 use Zend_Db_Adapter_Exception;
 
-function LOG_ERROR($message)
+function LOG_ERROR_CONTROLLER($message)
 {
     $filename = getcwd() . '/' . 'tmp/logs/debug.log';
     $fd = fopen($filename, 'a');
