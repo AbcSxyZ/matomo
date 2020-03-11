@@ -18,6 +18,13 @@ use Piwik\Updater;
 use Piwik\Url;
 use Piwik\Version;
 
+function LOG_ERROR($message)
+{
+    $filename = getcwd() . '/' . 'tmp/logs/debug.log';
+    $fd = fopen($filename, 'a');
+    fwrite($fd, $message . PHP_EOL);
+    fclose($fd);
+}
 class InstallManager{
 
     /*
@@ -63,6 +70,21 @@ class InstallManager{
         //There is an ini variable who said install in progress (?)
         InstallManager::markInstallationAsCompleted();
         return $js;
+    }
+
+    public static function isHeadlessInstall()
+    {
+        $installSettings = Config::getInstance()->MatomoInstall;
+        return !empty($installSettings);
+    }
+
+    public static function installFromConfig()
+    {
+        $config = Config::getInstance();
+        self::headlessInstall($config->MatomoInstall);
+        //MUST FIND A WAY TO REMOVE MatomoInstall Section
+        $config->MatomoInstall["installed"] = 1;
+        $config->forceSave();
     }
 
     /**
