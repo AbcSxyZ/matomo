@@ -18,39 +18,16 @@ use Piwik\Url;
 use Piwik\Version;
 use Zend_Db_Adapter_Exception;
 
-function LOG_ERROR($message)
-{
-    if (is_array($message))
-    {
-        LOG_ERROR("IS ARRAY");
-        $message = print_r($message, true);
-    }
-    $filename = getcwd() . '/' . 'tmp/logs/debug.log';
-    $fd = fopen($filename, 'a');
-    fwrite($fd, $message . PHP_EOL);
-    fclose($fd);
-}
-
-function print_file($filename)
-{
-    if (!is_readable($filename))
-    {
-        LOG_ERROR("FILE : $filename is not readble");
-        return;
-    }
-    $fd = fopen($filename, 'r');
-    $content = fread($fd, filesize($filename));
-    LOG_ERROR($content);
-    fclose($fd);
-}
+//Warning: - Don't know how plugin are installed (not done by installer
+//           actually). Some magics when I created installer.
 
 /*
  * Manage the Matomo server installation. Contain
  * all basic function to setup database, user, and
  * site to track.
  *
- * (?Could override some function to create a custom
- * installation process)
+ * (?Could be a parent class to create custom
+ * installation process?)
 */
 
 class MatomoInstaller{
@@ -58,7 +35,6 @@ class MatomoInstaller{
      * Perform the entire installation of Matomo.
      * Use user-defined settings.
      *
-     * //NEED TO DEFINE OPTIONNAL SETTINGS
      * @settings is expected to be an array with following
      * variables.
      *
@@ -66,19 +42,18 @@ class MatomoInstaller{
      *  - port (optionnal)
      *  - dbusername
      *  - dbpassword
-     *  - dbhost
+     *  - dbhost (optionnal?)
      *  - tables_prefix (optionnal)
-     *  - adapter : PDO\MYSQL | MYSQLI
+     *  - adapter (optionnal)
      *  - type (optionnal)
      *  - adminusername
      *  - adminpassword
      *  - email
-     *  // FOR subscribe, get null or 1 by GUI, convert to true or false ?
-     *  - subscribe_newsletter_piwikorg
-     *  - subscribe_newsletter_professionalservices
+     *  - subscribe_newsletter_piwikorg (optionnal)
+     *  - subscribe_newsletter_professionalservices (optionnal)
      *  - name
      *  - url
-     *  - ecommerce : 0 or 1
+     *  - ecommerce : (optionnal)
     */
     public static function headlessInstall($settings)
     {
@@ -106,12 +81,12 @@ class MatomoInstaller{
 
     /*
      * Use settings from MatomoInstall section in
-     * the config.ini.php file and perform an installation.
+     * the config.ini.php file and perform installation.
      */
     public static function installFromConfig()
     {
         //Use settings defined in config.ini.php
-        //in MatomoInstall section to perform installation.
+        //in MatomoInstall section.
         $settings = Config::getInstance()->MatomoInstall;
         self::headlessInstall($settings);
 
@@ -141,7 +116,7 @@ class MatomoInstaller{
         // ! Having an error if I remove it.
         // Multiple entrence for installation, must know where plug
         // the install.
-        // Must get update : https://github.com/matomo-org/matomo/pull/15691
+        // require : Must get update -> https://github.com/matomo-org/matomo/pull/15691
         self::deleteConfigFileIfNeeded();
         // Do not use dependency injection because this service requires a lot of sub-services across plugins
         /** @var DiagnosticService $diagnosticService */
@@ -248,6 +223,7 @@ class MatomoInstaller{
      */
     public static function tablesCreation()
     {
+        //Could have already created tables ?
         DbHelper::createTables();
         DbHelper::createAnonymousUser();
         DbHelper::recordInstallVersion();
@@ -264,7 +240,7 @@ class MatomoInstaller{
     {
         // Can throw exception
 
-        //WHICH WORK IF USER EXISTS ? (avoid create super user)
+        //Skip super user creation if one already exist
         $superUserAlreadyExists = Access::doAsSuperUser(function () {
             return count(APIUsersManager::getInstance()->getUsersHavingSuperUserAccess()) > 0;
         });
@@ -273,7 +249,6 @@ class MatomoInstaller{
             return ;
         }
 
-        //Create user
         self::createSuperUser($settings['adminusername'],
                               $settings['adminpassword'],
                               $settings['email']);
@@ -309,6 +284,9 @@ class MatomoInstaller{
         return $params;
     }
 
+    //Unable to remove it, getting error otherwise.
+    //It was probably coming from the location where I called the Installer
+    //WARNING: remove the config.ini.php file on installation failure
     protected static function deleteConfigFileIfNeeded()
     {
         $config = Config::getInstance();
@@ -339,7 +317,6 @@ class MatomoInstaller{
     /**
      * Write configuration file from session-store
      */
-
     private static function createConfigFile($dbInfos)
     {
         $config = Config::getInstance();
