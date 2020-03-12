@@ -8,9 +8,9 @@
 namespace Piwik\Plugins\Diagnostics\Diagnostic;
 
 use Piwik\Common;
-use Piwik\Config;
 use Piwik\Db;
 use Piwik\Translation\Translator;
+use Piwik\SettingsPiwik;
 
 /**
  * Check if Piwik can use LOAD DATA INFILE.
@@ -29,8 +29,7 @@ class LoadDataInfileCheck implements Diagnostic
 
     public function execute()
     {
-        $isPiwikInstalling = !Config::getInstance()->existsLocalConfig();
-        if ($isPiwikInstalling) {
+        if (!SettingsPiwik::isMatomoInstalled()) {
             // Skip the diagnostic if Piwik is being installed
             return array();
         }
