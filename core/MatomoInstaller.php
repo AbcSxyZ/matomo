@@ -345,12 +345,11 @@ class MatomoInstaller{
         return Common::getRequestVar($name, false, 'string');
     }
 
+    /*
+     * Create a new user and grant him Super User acess.
+    */
     public static function createSuperUser($login, $password, $email)
     {
-        //NOT SURE WHAT SHOULD I DO.
-        // I also give superUserAccess to the new created user,
-        // but is it useful for next step (creating site ?),
-        // don't know if it's secure to do it in this way.
         Access::doAsSuperUser(function () use ($login, $password, $email) {
             $api = APIUsersManager::getInstance();
             $api->addUser($login, $password, $email);
