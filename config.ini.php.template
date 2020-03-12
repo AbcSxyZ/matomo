@@ -1,0 +1,16 @@
+[MatomoInstall]
+dbname = "matomo"
+dbusername = "user"
+dbpassword = "pass"
+dbhost = "mysql-server"
+tables_prefix = "matomo_"
+adapter = "PDO\MYSQL"
+type = "InnoDB"
+adminusername = "admin"
+adminpassword = "pass"
+email = "mail@example.com"
+subscribe_newsletter_piwikorg = 0
+subscribe_newsletter_professionalservices = 0
+name = "matomo"
+url = "matomo.org"
+ecommerce = 0
