@@ -20,6 +20,8 @@ use Zend_Db_Adapter_Exception;
 
 //Warning: - Don't know how plugin are installed (not done by installer
 //           actually). Some magics when I created installer.
+//
+// require : https://github.com/matomo-org/matomo/pull/15691
 
 /*
  * Manage the Matomo server installation. Contain
@@ -116,7 +118,6 @@ class MatomoInstaller{
         // ! Having an error if I remove it.
         // Multiple entrence for installation, must know where plug
         // the install.
-        // require : Must get update -> https://github.com/matomo-org/matomo/pull/15691
         self::deleteConfigFileIfNeeded();
         // Do not use dependency injection because this service requires a lot of sub-services across plugins
         /** @var DiagnosticService $diagnosticService */
