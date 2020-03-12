@@ -184,19 +184,33 @@ class MatomoInstaller{
         }
 
         //Should I allow port change ? Using defaultPort only if null.
-        $adapter = $settings['adapter'];
-        $port = Adapter::getDefaultPortForAdapter($adapter);
         $host = $settings['dbhost'];
-        $tables_prefix = $settings['tables_prefix'];
 
+        //Set some default value.
+        //Engine db type (default InnoDB)
+        if (is_null($settings['type']))
+            $settings['type'] = Config::getInstance()->database['type'];
+
+        if (is_null($settings['port']))
+        {
+            $port = Adapter::getDefaultPortForAdapter($settings['adapter']);
+            $settings['port'] = $port;
+        }
+
+        //DEFAULT TABLES_PREFIX could be define in global.ini.php
+        if (is_null($settings['tables_prefix']))
+            $settings['tables_prefix'] = "matomo_";
+
+        //Prepare db settings.
+        //ARE TRIM USEFULL ? 
         $dbInfos = array(
             'host'          => (is_null($host)) ? $host : trim($host),
             'username'      => $settings['dbusername'],
             'password'      => $settings['dbpassword'],
             'dbname'        => $dbname,
-            'tables_prefix' => (is_null($tables_prefix)) ? $tables_prefix : trim($tables_prefix),
-            'adapter'       => $adapter,
-            'port'          => $port,
+            'tables_prefix' => trim($tables_prefix),
+            'adapter'       => $settings['adapter'],
+            'port'          => $settings['port'],
             'schema'        => Config::getInstance()->database['schema'],
             'type'          => $settings['type'],
             'enable_ssl'    => false
