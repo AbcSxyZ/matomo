@@ -18,6 +18,10 @@ use Piwik\Updater;
 use Piwik\Url;
 use Piwik\Version;
 
+//WARNINGS:
+// - Don't know how plugin are handled, perhaps they need
+// to be installed.
+
 function LOG_ERROR($message)
 {
     if (is_array($message))
@@ -123,10 +127,15 @@ class InstallManager{
      * 
      * @view View (optionnal), view to store DiagnosticReport
     */
+    //S: Should I perform the system check ?
+    //In : https://github.com/digitalist-se/extratools/blob/master/Lib/Install.php
+    // no system check seem to be performed.
     public static function systemCheck($view=null)
     {
         //Why could it be useful ?? Should I handle
         //already created config ?
+        // ! Having an error if I remove it, do not understand why,
+        // and will remove config.ini.php on failure...
         self::deleteConfigFileIfNeeded();
         // Do not use dependency injection because this service requires a lot of sub-services across plugins
         /** @var DiagnosticService $diagnosticService */
