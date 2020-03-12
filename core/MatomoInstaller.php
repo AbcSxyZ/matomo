@@ -173,15 +173,10 @@ class MatomoInstaller{
      */
     public static function createDatabaseObject($settings)
     {
-        //S : Trim is usefull ?? Why the entry shouldn't be trimmed ?
-        $dbname = trim($settings["dbname"]); 
-        if (empty($dbname))
+        if (empty($settings['dbname']))
         {
             throw new Exception("No database name");
         }
-
-        //Should I allow port change ? Using defaultPort only if null.
-        $host = $settings['dbhost'];
 
         //Set some default value for database setup.
         if (is_null($settings['type']))
@@ -202,13 +197,12 @@ class MatomoInstaller{
             $settings['tables_prefix'] = "matomo_";
 
         //Prepare db settings.
-        //ARE TRIM USEFULL ? 
         $dbInfos = array(
-            'host'          => (is_null($host)) ? $host : trim($host),
+            'host'          => $settings['dbhost'],
             'username'      => $settings['dbusername'],
             'password'      => $settings['dbpassword'],
-            'dbname'        => $dbname,
-            'tables_prefix' => trim($tables_prefix),
+            'dbname'        => $settings['dbname'],
+            'tables_prefix' => $settings['tables_prefix'],
             'adapter'       => $settings['adapter'],
             'port'          => $settings['port'],
             'schema'        => Config::getInstance()->database['schema'],
