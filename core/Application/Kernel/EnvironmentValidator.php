@@ -13,8 +13,8 @@ use Piwik\Config;
 use Piwik\Exception\InvalidRequestParameterException;
 use Piwik\Exception\NotYetInstalledException;
 use Piwik\Filechecks;
+use Piwik\MatomoInstaller;
 use Piwik\Piwik;
-use Piwik\Plugins\Installation\InstallManager;
 use Piwik\SettingsPiwik;
 use Piwik\SettingsServer;
 use Piwik\Translation\Translator;
@@ -66,10 +66,8 @@ class EnvironmentValidator
             $startInstaller = false;
         }
 
-        if (InstallManager::isHeadlessInstall())
-        {
-            InstallManager::installFromConfig();
-        }
+        if (MatomoInstaller::isHeadlessInstall())
+            MatomoInstaller::installFromConfig();
 
         // Start the installation when config file not found
         $this->checkConfigFileExists($this->settingsProvider->getPathLocal(), $startInstaller);

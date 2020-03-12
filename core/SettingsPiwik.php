@@ -11,6 +11,7 @@ namespace Piwik;
 use Exception;
 use Piwik\Cache as PiwikCache;
 use Piwik\Container\StaticContainer;
+use Piwik\MatomoInstaller;
 
 /**
  * Contains helper methods that can be used to get common Piwik settings.
@@ -233,7 +234,7 @@ class SettingsPiwik
     {
         //S: Case of headless installation immediatly tested,
         //avoid conflict with Installation plugin
-        if (Plugins\Installation\InstallManager::isHeadlessInstall())
+        if (MatomoInstaller::isHeadlessInstall())
             return false;
 
         $config = Config::getInstance()->getLocalPath();
