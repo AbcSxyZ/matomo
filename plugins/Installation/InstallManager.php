@@ -96,6 +96,10 @@ class InstallManager{
         return !empty($installSettings);
     }
 
+    /*
+     * Use settings from MatomoInstall section in
+     * the config.ini.php file to perform an installation.
+     */
     public static function installFromConfig()
     {
         //Use settings defined in config.ini.php
@@ -121,12 +125,17 @@ class InstallManager{
     */
     public static function systemCheck($view=null)
     {
+        //Why could it be useful ?? Should I handle
+        //already created config ?
         self::deleteConfigFileIfNeeded();
         // Do not use dependency injection because this service requires a lot of sub-services across plugins
         /** @var DiagnosticService $diagnosticService */
         $diagnosticService = StaticContainer::get('Piwik\Plugins\Diagnostics\DiagnosticService');
         $diagnosticReport = $diagnosticService->runDiagnostics();
 
+        //Store the diagnostic report in the view
+        // !! Should remove Installation plugin mecanism
+        //Must think about the way to handle error here
         if (!is_null($view))
         {
             $view->diagnosticReport = $diagnosticReport;
@@ -153,7 +162,7 @@ class InstallManager{
             throw new Exception("No database name");
         }
 
-        //Should I allow port change ? Using defaultPort if null.
+        //Should I allow port change ? Using defaultPort only if null.
         $adapter = $settings['adapter'];
         $port = Adapter::getDefaultPortForAdapter($adapter);
         $host = $settings['dbhost'];
@@ -230,7 +239,7 @@ class InstallManager{
     {
         // Can throw exception
 
-        //WHICH WORK IF USER EXISTS ?
+        //WHICH WORK IF USER EXISTS ? (avoid create super user)
         $superUserAlreadyExists = Access::doAsSuperUser(function () {
             return count(APIUsersManager::getInstance()->getUsersHavingSuperUserAccess()) > 0;
         });
@@ -323,8 +332,6 @@ class InstallManager{
      * Write configuration file from session-store
      */
 
-    //S:At which point is it usefull, which settings is
-    //for the GUI (like installation_in_progress)
     public static function createConfigFile($dbInfos)
     {
         //PROBABBLY SOME CONFIG NOT NEEDED (like installation_in_progress)
