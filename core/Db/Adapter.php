@@ -135,6 +135,6 @@ class Adapter
      */
     public static function getRecommendedApater()
     {
-        return 'pdo/mysql';
+        return 'PDO\MYSQL';
     }
 }
