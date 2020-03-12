@@ -92,30 +92,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
      */
     function welcome($possibleErrorMessage = null)
     {
-        //HEADLESS INSTALL: Create general settings to bypass
-        // gui install
-        $settings = array(
-            "dbname" => "matomo",
-            "dbusername" => "user",
-            "dbpassword" => "pass-w0rd",
-            "dbhost" => "127.0.0.1",
-            "tables_prefix" => "matomo_",
-            "adapter" => "PDO\\MYSQL",
-            "type" => "InnoDB",
-            "adminusername" => "admin",
-            "adminpassword" => "pass-w0rd",
-            "email" => "mail@example.com",
-            "subscribe_newsletter_piwikorg" => null,
-            "subscribe_newsletter_professionalservices" => null,
-            "name" => "test",
-            "url" => "test.org",
-            "ecommerce" => 0
-        );
-        //HEADLESS INSTALL: skip all step and get redirected to
-        //the default index.php.
-        InstallManager::headlessInstall($settings);
-        Url::redirectToUrl('index.php');
-
         // Delete merged js/css files to force regenerations based on updated activated plugin list
         Filesystem::deleteAllCacheOnUpdate();
 

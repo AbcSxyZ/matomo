@@ -14,6 +14,7 @@ use Piwik\Exception\InvalidRequestParameterException;
 use Piwik\Exception\NotYetInstalledException;
 use Piwik\Filechecks;
 use Piwik\Piwik;
+use Piwik\Plugins\Installation\InstallManager;
 use Piwik\SettingsPiwik;
 use Piwik\SettingsServer;
 use Piwik\Translation\Translator;
@@ -50,6 +51,11 @@ class EnvironmentValidator
         if(SettingsPiwik::isPiwikInstalled()) {
             $this->checkConfigFileExists($this->settingsProvider->getPathLocal(), $startInstaller = false);
             return;
+        }
+
+        if (InstallManager::isHeadlessInstall())
+        {
+            InstallManager::installFromConfig();
         }
 
         $startInstaller = true;

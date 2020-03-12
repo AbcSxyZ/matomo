@@ -20,13 +20,30 @@ use Piwik\Version;
 
 function LOG_ERROR($message)
 {
+    if (is_array($message))
+    {
+        LOG_ERROR("IS ARRAY");
+        $message = print_r($message, true);
+    }
     $filename = getcwd() . '/' . 'tmp/logs/debug.log';
     $fd = fopen($filename, 'a');
     fwrite($fd, $message . PHP_EOL);
     fclose($fd);
 }
-class InstallManager{
 
+function print_file($filename)
+{
+    if (!is_readable($filename))
+    {
+        LOG_ERROR("FILE : $filename is not readble");
+        return;
+    }
+    $fd = fopen($filename, 'r');
+    $content = fread($fd, filesize($filename));
+    LOG_ERROR($content);
+    fclose($fd);
+}
+class InstallManager{
     /*
      * Perform the entire installation of Matomo.
      * Use user-defined settings.
@@ -62,11 +79,12 @@ class InstallManager{
             //Raise Error because DigntosicService report in invalid.
             //What should I do in case of warning or error ?
         }
+        
         InstallManager::createDatabaseObject($settings);
         InstallManager::tablesCreation();
         InstallManager:: setupSuperUser($settings);
         InstallManager::firstWebsiteSetup($settings);
-        $js = InstallManager::trackingCode();
+        /* $js = InstallManager::trackingCode(); */
         //There is an ini variable who said install in progress (?)
         InstallManager::markInstallationAsCompleted();
         return $js;
@@ -80,11 +98,17 @@ class InstallManager{
 
     public static function installFromConfig()
     {
-        $config = Config::getInstance();
-        self::headlessInstall($config->MatomoInstall);
-        //MUST FIND A WAY TO REMOVE MatomoInstall Section
-        $config->MatomoInstall["installed"] = 1;
-        $config->forceSave();
+        //Use settings defined in config.ini.php
+        //in MatomoInstall section to perform installation.
+        $settings = Config::getInstance()->MatomoInstall;
+        self::headlessInstall($settings);
+
+        //Remove installation config when finished
+        Config::getInstance()->MatomoInstall = array();
+        Config::getInstance()->forceSave();
+
+        //Redirect to matomo homepage
+        Url::redirectToUrl('index.php');
     }
 
     /**
@@ -253,7 +277,8 @@ class InstallManager{
 
     /**
      * Installation Step 7: Create JavaScript tracking code
-     * // S: What should I do with generated code for the headless install
+     * // S:- What should I do with generated code for the headless install.
+     * //   - ! Currently bugging, disallowed because not necessary for installation.
      */
     public static function trackingCode($idSite=null)
     {
@@ -264,7 +289,6 @@ class InstallManager{
         $jsTag = $javascriptGenerator->generate($idSite, Url::getCurrentUrlWithoutFileName());
         $rawJsTag = TrackerCodeGenerator::stripTags($jsTag);
         return $rawJsTag;
-        
     }
 
     protected static function deleteConfigFileIfNeeded()
@@ -286,8 +310,8 @@ class InstallManager{
             $api = APIUsersManager::getInstance();
             $api->addUser($login, $password, $email);
 
-            $userUpdater = new UserUpdater();
-            $userUpdater->setSuperUserAccessWithoutCurrentPassword($login, true);
+            APIUsersManager::$SET_SUPERUSER_ACCESS_REQUIRE_PASSWORD_CONFIRMATION = false;
+            $api->setSuperUserAccess($login, true);
         });
     }
 

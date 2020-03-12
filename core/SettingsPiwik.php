@@ -231,6 +231,11 @@ class SettingsPiwik
      */
     public static function isPiwikInstalled()
     {
+        //S: Case of headless installation immediatly tested,
+        //avoid conflict with Installation plugin
+        if (Plugins\Installation\InstallManager::isHeadlessInstall())
+            return false;
+
         $config = Config::getInstance()->getLocalPath();
         $exists = file_exists($config);
 
@@ -239,6 +244,9 @@ class SettingsPiwik
             return false;
         }
 
+
+        //S: Installation plugin already create a config.ini.php,
+        //since db configuration, but some steps are missing.
         $general = Config::getInstance()->General;
 
         $isInstallationInProgress = false;
