@@ -13,7 +13,6 @@ use Piwik\Plugins\SitesManager\API as APISitesManager;
 use Piwik\Plugins\UsersManager\API as APIUsersManager;
 use Piwik\Plugins\UsersManager\NewsletterSignup;
 use Piwik\ProxyHeaders;
-use Piwik\Tracker\TrackerCodeGenerator;
 use Piwik\Updater;
 use Piwik\Url;
 use Piwik\Version;
@@ -93,9 +92,6 @@ class MatomoInstaller{
         self::tablesCreation();
         self::setupSuperUser($settings);
         self::firstWebsiteSetup($settings);
-        /* $js = self::trackingCode(); */
-        //There is an ini variable who said install in progress (?)
-        return $js;
     }
 
     /*
@@ -311,22 +307,6 @@ class MatomoInstaller{
         );
         self::addTrustedHosts($settings['url']);
         return $params;
-    }
-
-    /**
-     * Installation Step 7: Create JavaScript tracking code
-     * // S:- What should I do with generated code for the headless install.
-     * //   - ! Currently bugging, disallowed because not necessary for installation.
-     */
-    public static function trackingCode($idSite=null)
-    {
-        if (is_null($idSite))
-            $idSite = self::getParam('idSite');
-
-        $javascriptGenerator = new TrackerCodeGenerator();
-        $jsTag = $javascriptGenerator->generate($idSite, Url::getCurrentUrlWithoutFileName());
-        $rawJsTag = TrackerCodeGenerator::stripTags($jsTag);
-        return $rawJsTag;
     }
 
     protected static function deleteConfigFileIfNeeded()
