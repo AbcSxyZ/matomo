@@ -183,10 +183,13 @@ class MatomoInstaller{
         //Should I allow port change ? Using defaultPort only if null.
         $host = $settings['dbhost'];
 
-        //Set some default value.
-        //Engine db type (default InnoDB)
+        //Set some default value for database setup.
         if (is_null($settings['type']))
             $settings['type'] = Config::getInstance()->database['type'];
+
+        //!! MUST ADD Adapter::getRecommendedApater
+        if (is_null($settings['adapter']))
+            $settings['adapter'] = Adapter::getRecommendedApater();
 
         if (is_null($settings['port']))
         {
