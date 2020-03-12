@@ -64,15 +64,13 @@ class MatomoInstaller{
      * variables.
      *
      *  - dbname
-     *  - port (to add ? Found by default)
+     *  - port (optionnal)
      *  - dbusername
      *  - dbpassword
      *  - dbhost
-     *  - tables_prefix
+     *  - tables_prefix (optionnal)
      *  - adapter : PDO\MYSQL | MYSQLI
-     *  //TYPE: db engine, from GUI, having null as default, but
-     *  //must add InnoDB to run InstallManager::tablesCreation()
-     *  - type
+     *  - type (optionnal)
      *  - adminusername
      *  - adminpassword
      *  - email
