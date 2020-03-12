@@ -257,8 +257,6 @@ class MatomoInstaller{
      */
     public static function tablesCreation()
     {
-        //ERROR HERE, getting null engine and creating SQL syntax error :
-        // "the right syntax to use near &#039;DEFAULT CHARSET=utf8&#03"
         DbHelper::createTables();
         DbHelper::createAnonymousUser();
         DbHelper::recordInstallVersion();
