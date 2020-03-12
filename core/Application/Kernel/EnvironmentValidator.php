@@ -53,10 +53,6 @@ class EnvironmentValidator
             return;
         }
 
-        if (InstallManager::isHeadlessInstall())
-        {
-            InstallManager::installFromConfig();
-        }
 
         $startInstaller = true;
 
@@ -68,6 +64,11 @@ class EnvironmentValidator
         if(Common::isPhpCliMode()) {
             // in CLI, do not start/redirect to installer, simply output the exception at the top
             $startInstaller = false;
+        }
+
+        if (InstallManager::isHeadlessInstall())
+        {
+            InstallManager::installFromConfig();
         }
 
         // Start the installation when config file not found
