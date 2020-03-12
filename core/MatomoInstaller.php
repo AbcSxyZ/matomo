@@ -364,8 +364,6 @@ class MatomoInstaller{
 
     private static function createConfigFile($dbInfos)
     {
-        //PROBABBLY SOME CONFIG NOT NEEDED (like installation_in_progress)
-        //need feedback
         $config = Config::getInstance();
 
         // make sure DB sessions are used if the filesystem is NFS
