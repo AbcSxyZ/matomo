@@ -236,7 +236,7 @@ class InstallManager{
         });
 
         if ($superUserAlreadyExists) {
-            $this->redirectToNextStep('setupSuperUser');
+            return ;
         }
 
         //Create user
@@ -306,6 +306,10 @@ class InstallManager{
 
     public static function createSuperUser($login, $password, $email)
     {
+        //NOT SURE WHAT SHOULD I DO.
+        // I also give superUserAccess to the new created user,
+        // but is it useful for next step (creating site ?),
+        // don't know if it's secure to do it in this way.
         Access::doAsSuperUser(function () use ($login, $password, $email) {
             $api = APIUsersManager::getInstance();
             $api->addUser($login, $password, $email);
@@ -323,6 +327,8 @@ class InstallManager{
     //for the GUI (like installation_in_progress)
     public static function createConfigFile($dbInfos)
     {
+        //PROBABBLY SOME CONFIG NOT NEEDED (like installation_in_progress)
+        //need feedback
         $config = Config::getInstance();
 
         // make sure DB sessions are used if the filesystem is NFS
@@ -421,13 +427,12 @@ class InstallManager{
     /**
      * Write configuration file from session-store
      */
-    //S:Probably function is not needed, but having trouble with
-    //installation_in_progress settings.
+    //S:Probably function is not needed, installation_in_progress
+    //manager should be manager by Installation Plugin.
     protected static function markInstallationAsCompleted()
     {
         $config = Config::getInstance();
         unset($config->General['installation_in_progress']);
         $config->forceSave();
     }
-
 }
