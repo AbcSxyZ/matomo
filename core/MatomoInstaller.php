@@ -95,7 +95,6 @@ class MatomoInstaller{
         self::firstWebsiteSetup($settings);
         /* $js = self::trackingCode(); */
         //There is an ini variable who said install in progress (?)
-        self::markInstallationAsCompleted();
         return $js;
     }
 
@@ -389,7 +388,6 @@ class MatomoInstaller{
         }
 
         $config->General['salt'] = Common::generateUniqId();
-        $config->General['installation_in_progress'] = 1;
 
         $config->database = $dbInfos;
         if (!DbHelper::isDatabaseConnectionUTF8()) {
@@ -460,17 +458,5 @@ class MatomoInstaller{
             return $host;
         }
         return false;
-    }
-
-    /**
-     * Write configuration file from session-store
-     */
-    //S:Probably function is not needed, installation_in_progress
-    //manager should be manager by Installation Plugin.
-    private static function markInstallationAsCompleted()
-    {
-        $config = Config::getInstance();
-        unset($config->General['installation_in_progress']);
-        $config->forceSave();
     }
 }
