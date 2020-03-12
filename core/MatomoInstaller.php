@@ -193,6 +193,7 @@ class MatomoInstaller{
         }
 
         //DEFAULT TABLES_PREFIX could be define in global.ini.php
+        //(Could table be without prefix ?)
         if (is_null($settings['tables_prefix']))
             $settings['tables_prefix'] = "matomo_";
 
